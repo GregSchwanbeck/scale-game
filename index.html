@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Celestial Scale Challenge (ALPHA 3)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      margin: 20px;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      overflow-x: hidden;
+    }
+    .game-ui {
+      position: relative;
+      z-index: 10;
+    }
+    .container-wrapper {
+      width: 900px;
+      margin: 20px auto;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      align-items: flex-start;
+    }
+    .object-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 300px;
+    }
+    .circle-display {
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .circle {
+      border-radius: 50%;
+      transition: width 0.2s, height 0.2s;
+      background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(0,0,0,0.6));
+      background-blend-mode: multiply;
+      position: relative;
+      z-index: -10;
+    }
+    .huge-circle {
+      position: fixed;
+      width: 5000px !important;
+      height: 5000px !important;
+      top: 35%;
+      transform: translateY(-50%);
+      z-index: -10;
+      pointer-events: none;
+      border-radius: 50%;
+      background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(0,0,0,0.6));
+      background-blend-mode: multiply;
+    }
+    .left-huge {
+      left: -3800px;
+    }
+    .right-huge {
+      right: -3800px;
+    }
+    .slider-wrapper {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .arrow-btn {
+      background-color: white;
+      color: black;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .label {
+      margin-top: 10px;
+      font-size: 1em;
+    }
+    .type-label {
+      font-size: 0.8em;
+      color: #aaa;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    select, input[type="range"] {
+      margin: 10px;
+    }
+    .button-group {
+      margin: 20px auto;
+    }
+    #resultsArea {
+      margin-top: 30px;
+      padding: 10px 20px;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      box-sizing: border-box;
+    }
+    #result {
+      font-size: 1.2em;
+      min-height: 1.5em;
+    }
+    #attemptCounter,
+    #trueScaleInfo {
+      margin-top: 10px;
+      font-size: 1em;
+      min-height: 1.2em;
+    }
+    #trueScaleInfo {
+      color: #ccc;
+    }
+    #guessLog {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #ccc;
+      text-align: center;
+      font-family: Calibri, sans-serif;
+      height: 110px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    #guessLog div {
+      margin: 3px 0;
+    }
+    .checkbox-label {
+      font-size: 0.75em;
+    }
+    #metaTracker {
+      margin-top: 10px;
+    }
+    #metaTracker img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-ui">
+    <h1>Celestial Scale Challenge</h1>
+
+    <div class="controls">
+      <label>Object 1: <select id="object1"></select></label>
+      <label>Object 2: <select id="object2"></select></label>
+    </div>
+
+    <button onclick="randomObjects()">RANDOM PAIR</button>
+    <button onclick="showInstructions()">INSTRUCTIONS</button>
+    <label style="margin-left: 10px;">
+      Music:
+      <input type="checkbox" id="musicToggle" onchange="toggleMusic()" />
+    </label>
+
+    <div class="container-wrapper">
+      <div class="container">
+        <div class="object-container">
+          <div class="circle-display">
+            <div id="circle1" class="circle"></div>
+          </div>
+          <div class="label" id="label1"></div>
+          <div class="slider-wrapper">
+            <div class="slider-container">
+              <button class="arrow-btn" onclick="adjustSlider('slider1', -1)">&#8592;</button>
+              <input type="range" id="slider1" min="1" max="400" value="100" />
+              <button class="arrow-btn" onclick="adjustSlider('slider1', 1)">&#8594;</button>
+            </div>
+            <label class="checkbox-label"><input type="checkbox" id="huge1" /> Make it huge!</label>
+          </div>
+        </div>
+
+        <div class="object-container">
+          <div class="circle-display">
+            <div id="circle2" class="circle"></div>
+          </div>
+          <div class="label" id="label2"></div>
+          <div class="slider-wrapper">
+            <div class="slider-container">
+              <button class="arrow-btn" onclick="adjustSlider('slider2', -1)">&#8592;</button>
+              <input type="range" id="slider2" min="1" max="400" value="100" />
+              <button class="arrow-btn" onclick="adjustSlider('slider2', 1)">&#8594;</button>
+            </div>
+            <label class="checkbox-label"><input type="checkbox" id="huge2" /> Make it huge!</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button onclick="lockInScale()" style="font-size: 1.2em; padding: 10px 20px; font-weight: bold;">GUESS</button>
+      </div>
+
+      <div id="resultsArea">
+        <div id="result"></div>
+        <div id="attemptCounter"></div>
+        <div id="trueScaleInfo"></div>
+        <div id="guessLog"></div>
+      </div>
+
+      <div id="metaTracker">
+        <img id="tickerImage" src="ticker.001.png" alt="Score Tracker" />
+      </div>
+    </div>
+  </div>
+
+  <audio id="lockSound" src="lockedin.mp3"></audio>
+  <audio id="successSound" src="ohyeah.mp3"></audio>
+  <audio id="bgMusic" src="bgmusic.mp3" loop></audio>
+  <audio id="hugeSound" src="huge.mp3"></audio>
+
+  <script>
+const objects = [
+      { name: "The Sun", radius: 696340, color: "#FFD700", type: "Star" },
+      { name: "Mercury", radius: 2439, color: "#A9A9A9", type: "Planet" },
+      { name: "Venus", radius: 6052, color: "#FAFAD2", type: "Planet" },
+      { name: "Earth", radius: 6371, color: "#1E90FF", type: "Planet" },
+      { name: "Mars", radius: 3390, color: "#FF4500", type: "Planet" },
+      { name: "Jupiter", radius: 69911, color: "#FFA500", type: "Planet" },
+      { name: "Saturn", radius: 58232, color: "#F8E473", type: "Planet" },
+      { name: "Uranus", radius: 25362, color: "#AFEEEE", type: "Planet" },
+      { name: "Neptune", radius: 24622, color: "#0000CD", type: "Planet" },
+      { name: "Pluto", radius: 1188, color: "#8B4513", type: "Dwarf Planet" },
+      { name: "Eris", radius: 1163, color: "#D3D3D3", type: "Dwarf Planet" },
+      { name: "Haumea", radius: 816, color: "#FFFFFF", type: "Dwarf Planet" },
+      { name: "Makemake", radius: 715, color: "#DC143C", type: "Dwarf Planet" },
+      { name: "Ceres", radius: 473, color: "#BEBEBE", type: "Dwarf Planet" },
+      { name: "Orcus", radius: 473, color: "#A9A9A9", type: "Dwarf Planet" },
+      { name: "Quaoar", radius: 555, color: "#B22222", type: "Dwarf Planet" },
+      { name: "Salacia", radius: 423, color: "#808080", type: "Dwarf Planet" },
+      { name: "Earth's Moon", radius: 1737, color: "#C0C0C0", type: "Moon of Earth" },
+      { name: "Phobos", radius: 11.1, color: "Grey", type: "Moon of Mars" },
+      { name: "Deimos", radius: 6.2, color: "Grey", type: "Moon of Mars" },
+      { name: "Ganymede", radius: 2634, color: "#BEBEBE", type: "Moon of Jupiter" },
+      { name: "Callisto", radius: 2410, color: "#2F4F4F", type: "Moon of Jupiter" },
+      { name: "Io", radius: 1821, color: "#FFFF00", type: "Moon of Jupiter" },
+      { name: "Europa", radius: 1560, color: "#FFFFFF", type: "Moon of Jupiter" },
+      { name: "Triton", radius: 1353, color: "#FFC0CB", type: "Moon of Neptune" },
+      { name: "Charon", radius: 606, color: "#A9A9A9", type: "Moon of Pluto" },
+      { name: "Titan", radius: 2575, color: "#FFA500", type: "Moon of Saturn" },
+      { name: "Mimas", radius: 198.5, color: "Grey", type: "Moon of Saturn" },
+      { name: "Dione", radius: 561, color: "#BEBEBE", type: "Moon of Saturn" },
+      { name: "Tethys", radius: 531, color: "#FFFFFF", type: "Moon of Saturn" },
+      { name: "Iapetus", radius: 734, color: "#808080", type: "Moon of Saturn" },
+      { name: "Rhea", radius: 764, color: "#BEBEBE", type: "Moon of Saturn" },
+      { name: "Titania", radius: 788, color: "#BEBEBE", type: "Moon of Uranus" },
+      { name: "Oberon", radius: 761, color: "#A9A9A9", type: "Moon of Uranus" },
+      { name: "Umbriel", radius: 584, color: "#2F4F4F", type: "Moon of Uranus" },
+      { name: "Ariel", radius: 579, color: "#BEBEBE", type: "Moon of Uranus" },
+      { name: "Halley's Comet", radius: 5.5, color: "White", type: "Comet Nucleus" },
+      { name: "67P/Churyumov–Gerasimenko", radius: 2, color: "White", type: "Comet Nucleus" },
+      { name: "486958 Arrokoth", radius: 17.5, color: "Grey", type: "Kuiper Belt Object" },
+      { name: "White Dwarf", radius: 6000, color: "White", type: "Star" }
+    ];
+
+    const object1Select = document.getElementById("object1");
+    const object2Select = document.getElementById("object2");
+    const circle1 = document.getElementById("circle1");
+    const circle2 = document.getElementById("circle2");
+    const slider1 = document.getElementById("slider1");
+    const slider2 = document.getElementById("slider2");
+    const huge1 = document.getElementById("huge1");
+    const huge2 = document.getElementById("huge2");
+    const resultDiv = document.getElementById("result");
+    const attemptCounter = document.getElementById("attemptCounter");
+    const trueScaleInfo = document.getElementById("trueScaleInfo");
+    const label1 = document.getElementById("label1");
+    const label2 = document.getElementById("label2");
+    const tickerImage = document.getElementById("tickerImage");
+    const guessLog = document.getElementById("guessLog");
+    const hugeSound = document.getElementById("hugeSound");
+
+    let attempts = 0;
+    let wins = 1;
+    const winPairs = new Set();
+
+    function populateDropdowns() {
+      const categories = {
+        "The Sun": [],
+        "Planets": [],
+        "Dwarf Planets": [],
+        "Moons": [],
+        "Other Stuff": []
+      };
+
+      objects.forEach(obj => {
+        if (obj.name === "The Sun") categories["The Sun"].push(obj);
+        else if (obj.type === "Planet") categories["Planets"].push(obj);
+        else if (obj.type === "Dwarf Planet") categories["Dwarf Planets"].push(obj);
+        else if (obj.type.includes("Moon")) categories["Moons"].push(obj);
+        else categories["Other Stuff"].push(obj);
+      });
+
+      categories["Planets"].sort((a, b) => {
+        const order = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"];
+        return order.indexOf(a.name) - order.indexOf(b.name);
+      });
+      categories["Dwarf Planets"].sort((a, b) => a.name.localeCompare(b.name));
+      categories["Moons"].sort((a, b) => {
+        if (a.name === "Earth's Moon") return -1;
+        if (b.name === "Earth's Moon") return 1;
+        return a.name.localeCompare(b.name);
+      });
+      categories["Other Stuff"].sort((a, b) => a.name.localeCompare(b.name));
+
+      function addGroup(select, label, group) {
+        const groupElem = document.createElement("optgroup");
+        groupElem.label = label;
+        group.forEach(obj => {
+          const opt = document.createElement("option");
+          opt.value = obj.name;
+          opt.textContent = obj.name;
+          groupElem.appendChild(opt);
+        });
+        select.appendChild(groupElem);
+      }
+
+      [object1Select, object2Select].forEach(select => {
+        select.innerHTML = "";
+        addGroup(select, "The Sun", categories["The Sun"]);
+        addGroup(select, "Planets", categories["Planets"]);
+        addGroup(select, "Dwarf Planets", categories["Dwarf Planets"]);
+        addGroup(select, "Moons", categories["Moons"]);
+        addGroup(select, "Other Stuff", categories["Other Stuff"]);
+      });
+    }
+
+    function updateCircles() {
+      const obj1 = objects.find(o => o.name === object1Select.value);
+      const obj2 = objects.find(o => o.name === object2Select.value);
+
+      const size1 = parseInt(slider1.value);
+      const size2 = parseInt(slider2.value);
+
+      slider1.disabled = huge1.checked;
+      slider2.disabled = huge2.checked;
+
+      if (huge1.checked) {
+        circle1.className = "huge-circle left-huge";
+        circle1.style.backgroundColor = obj1.color;
+      } else {
+        circle1.className = "circle";
+        circle1.style.width = size1 + "px";
+        circle1.style.height = size1 + "px";
+        circle1.style.backgroundColor = obj1.color;
+      }
+
+      if (huge2.checked) {
+        circle2.className = "huge-circle right-huge";
+        circle2.style.backgroundColor = obj2.color;
+      } else {
+        circle2.className = "circle";
+        circle2.style.width = size2 + "px";
+        circle2.style.height = size2 + "px";
+        circle2.style.backgroundColor = obj2.color;
+      }
+
+      label1.innerHTML = `${obj1.name}<div class='type-label'>${obj1.type}</div>`;
+      label2.innerHTML = `${obj2.name}<div class='type-label'>${obj2.type}</div>`;
+    }
+
+    function lockInScale() {
+      const obj1 = objects.find(o => o.name === object1Select.value);
+      const obj2 = objects.find(o => o.name === object2Select.value);
+      if (!obj1 || !obj2) return;
+
+      const value1 = huge1.checked ? 5000 : parseInt(slider1.value);
+      const value2 = huge2.checked ? 5000 : parseInt(slider2.value);
+      const userRatio = value2 / value1;
+      const trueRatio = obj2.radius / obj1.radius;
+      const error = Math.abs(userRatio - trueRatio);
+      const score = Math.max(0, Math.round((1 - error / trueRatio) * 100));
+
+      document.getElementById("lockSound").play();
+      if (score >= 90) document.getElementById("successSound").play();
+
+      attempts++;
+      resultDiv.innerHTML = `Your score: <span style='font-size: 2em; font-weight: bold; color: ${score >= 90 ? "lime" : "white"};'>${score}</span>/100`;
+      attemptCounter.textContent = `Attempt #${attempts}`;
+
+      const logEntry = `Guess #${attempts}: <b>${obj1.name}</b> ${value1}px vs. <b>${obj2.name}</b> ${value2}px - Score: <b>${score}</b>`;
+      const logLine = document.createElement("div");
+      logLine.innerHTML = logEntry;
+      guessLog.appendChild(logLine);
+      while (guessLog.children.length > 6) {
+        guessLog.removeChild(guessLog.firstChild);
+      }
+
+      const key = [obj1.name, obj2.name].sort().join("-");
+      if (score >= 95 && !winPairs.has(key)) {
+        winPairs.add(key);
+        if (wins < 20) wins++;
+        tickerImage.src = `ticker.${wins.toString().padStart(3, '0')}.png`;
+      }
+
+      if (attempts >= 5 || score > 85) {
+        const larger = obj1.radius > obj2.radius ? obj1 : obj2;
+        const smaller = obj1.radius <= obj2.radius ? obj1 : obj2;
+        trueScaleInfo.textContent = `True scale: ${larger.name} is ${(larger.radius / smaller.radius).toFixed(2)} times the diameter of ${smaller.name}`;
+      } else {
+        trueScaleInfo.textContent = "";
+      }
+    }
+
+    function clearResults() {
+      resultDiv.innerHTML = "";
+      attemptCounter.textContent = "";
+      trueScaleInfo.textContent = "";
+      guessLog.innerHTML = "";
+      attempts = 0;
+    }
+
+    function randomObjects() {
+      let i1 = Math.floor(Math.random() * objects.length);
+      let i2;
+      do {
+        i2 = Math.floor(Math.random() * objects.length);
+      } while (i2 === i1);
+      object1Select.value = objects[i1].name;
+      object2Select.value = objects[i2].name;
+      slider1.value = 100;
+      slider2.value = 100;
+      huge1.checked = false;
+      huge2.checked = false;
+      updateCircles();
+      clearResults();
+    }
+
+    function adjustSlider(id, delta) {
+      const slider = document.getElementById(id);
+      let newVal = parseInt(slider.value) + delta;
+      slider.value = Math.max(slider.min, Math.min(slider.max, newVal));
+      updateCircles();
+    }
+
+    function toggleMusic() {
+      const music = document.getElementById("bgMusic");
+      const toggle = document.getElementById("musicToggle");
+      if (toggle.checked) music.play();
+      else {
+        music.pause();
+        music.currentTime = 0;
+      }
+    }
+
+    function showInstructions() {
+      alert("Use the sliders to adjust the sizes of the two planets/moons/etc. Once you think you've got them to the correct relative scale, click the guess button. You'll get a score based on how close you are to the correct size ratio. A score of 95 or higher earns you a golden mirror panel... collect them all! NOTE: There are some combinations for which the sizes are so vastly different that a perfect score is not possible.");
+    }
+
+    huge1.addEventListener("change", () => {
+      if (huge1.checked) hugeSound.play();
+      updateCircles();
+    });
+
+    huge2.addEventListener("change", () => {
+      if (huge2.checked) hugeSound.play();
+      updateCircles();
+    });
+
+    object1Select.onchange = () => {
+      updateCircles();
+      clearResults();
+    };
+    object2Select.onchange = () => {
+      updateCircles();
+      clearResults();
+    };
+    slider1.addEventListener("input", updateCircles);
+    slider2.addEventListener("input", updateCircles);
+
+    populateDropdowns();
+    object1Select.value = "Earth";
+    object2Select.value = "Earth's Moon";
+    updateCircles();
+  </script>
+</body>
+</html>
